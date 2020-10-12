@@ -23,10 +23,14 @@ class xlsx_opener():
         self.last_line = xw.Range('D3').end('down').row
 
         # Read all data from file
-        for line in range(4, self.last_line + 1):
+        for line in range(3, self.last_line + 1):
             print("one line " + str(line))
             self.read_question_items(line)
         # print(self.question_list)
+        self.question_data_list.sort(key=self.take_last)
+
+    def take_last(self, elem):
+        return elem[-1]
 
     def read_question_items(self, line_number):
         question = self.read_cell('D' + str(line_number))
@@ -41,11 +45,16 @@ class xlsx_opener():
         reponse3 = self.read_cell('M' + str(line_number))
         reponse4 = self.read_cell('N' + str(line_number))
         reponse5 = self.read_cell('O' + str(line_number))
+        category_num = self.read_cell('A' + str(line_number))
+        if category_num is None:
+            category_num = "9999-0"
+
         parameter_list = [question, type, choix1, choix2, choix3, choix4, choix5, reponse1, reponse2, reponse3,
-                          reponse4,
-                          reponse5]
+                          reponse4, reponse5, category_num]
         print(parameter_list)
         self.question_data_list.append(parameter_list)
+
+
 
     def read_cell(self, cell_number):
         value = xw.Range(cell_number).value
@@ -71,6 +80,8 @@ class quiz_xml():
                 quiz_question_numerical(self.quiz, question_data)
             elif question_data[1] == 'Reponse courte':
                 quiz_question_short_answer(self.quiz, question_data)
+            elif question_data[1] == 'Categories':
+                quiz_question_categories(self.quiz, question_data)
             else:
                 print("Le type de question == " + question_data[1] + " == n'est pas encore supporté")
         self.write_quiz()
@@ -86,7 +97,8 @@ class quiz_xml():
             "&gt;": ">",
             "&lt;": "<",
             "&#233;": "é",
-            "e&#769;": "é"
+            "e&#769;": "é",
+            "e&#768;": "è"
         }
         q_data = q_data.decode("utf-8")
         for char in replacements:
@@ -138,7 +150,7 @@ class quiz_question():
             else:
                 good_answer_count += 1
 
-        if  parameter_list[1] == 'Reponse courte':
+        if parameter_list[1] == 'Reponse courte':
             fraction = 100
         else:
             fraction = 100 / good_answer_count
@@ -237,7 +249,7 @@ class quiz_question():
 
         if parameter_list[5] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[10] is not None:
             answer4 = ET.SubElement(self.question, 'answer')
-            if parameter_list[10] == 1  or parameter_list[1] == 'Reponse courte':
+            if parameter_list[10] == 1 or parameter_list[1] == 'Reponse courte':
                 answer4.set('fraction', str(fraction))
             else:
                 answer4.set('fraction', str(0))
@@ -260,7 +272,7 @@ class quiz_question():
 
         if parameter_list[6] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[11] is not None:
             answer5 = ET.SubElement(self.question, 'answer')
-            if parameter_list[11] == 1  or parameter_list[1] == 'Reponse courte':
+            if parameter_list[11] == 1 or parameter_list[1] == 'Reponse courte':
                 answer5.set('fraction', str(fraction))
             else:
                 answer5.set('fraction', str(0))
@@ -357,6 +369,26 @@ class quiz_question_numerical(quiz_question):
         showunits.text = "3"
         unitsleft = ET.SubElement(self.question, 'unitsleft')
         unitsleft.text = "0"
+
+
+class quiz_question_categories(quiz_question):
+    def __init__(self, quiz, parameter_list):
+        self.question = ET.SubElement(quiz, 'question')
+        self.question.set('type', 'category')
+
+        # categories
+        category = ET.SubElement(self.question, 'category')
+        category_text = ET.SubElement(category, 'text')
+        category_text.text = "$module$/top/" + str(parameter_list[0])
+
+        # info
+        info = ET.SubElement(self.question, 'info')
+        info.set('format', 'html')
+        info_text = ET.SubElement(info, 'text')
+        info_text.text = "<![CDATA[<p>" + str(parameter_list[0]) + "</p>]]>"
+
+        # idnumber
+        idnumber = ET.SubElement(self.question, 'idnumber')
 
 
 if __name__ == '__main__':
