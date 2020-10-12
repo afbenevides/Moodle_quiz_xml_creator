@@ -1,0 +1,11 @@
+*~
+*.swp
+*.tmp
+*.bak
+.idea
+venv
+.venv
+*.log
+config.conf
+*.DS_Store
+*.pyc
