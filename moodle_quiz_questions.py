@@ -1,4 +1,6 @@
 import xlwings as xw
+from xlwings.constants import DeleteShiftDirection
+
 import unicodedata
 import xml.etree.ElementTree as ET
 
@@ -54,14 +56,57 @@ class xlsx_opener():
         print(parameter_list)
         self.question_data_list.append(parameter_list)
 
-
-
     def read_cell(self, cell_number):
         value = xw.Range(cell_number).value
         if isinstance(value, str):
             return unicodedata.normalize("NFKD", xw.Range(cell_number).value)
         else:
             return value
+
+
+class statistiques():
+    def __init__(self, data_file_name, question_data):
+        sheet_name = 'Ponderation'
+        print(sheet_name)
+        xw.sheets[sheet_name].activate()
+        # lwr_r_cell = xw.cells.last_cell  # lower right cell
+        if xw.Range('A2').value:
+            self.last_line = xw.Range('A2').end('down').row
+            xw.Range(str(2) + ':' + str(self.last_line+1)).delete()
+
+        #Trouver tous les lignes à traiter
+
+        my_list_name=[]
+        my_list_id=[]
+        id_list=[]
+        for each in question_data:
+            id_list.append(each[-1])
+
+        for each in question_data:
+            if each[-1][-1] == '0':
+                my_list_name.append(each[0].split('/')[-1])
+                my_list_id.append(each[-1])
+
+
+        print(my_list_name)
+        print(my_list_id)
+
+        #my_unique_list_name = self.unique_id_list(my_list_name)
+        #my_unique_list_id = self.unique_id_list(my_list_id)
+        #print(my_unique_list_name)
+        #print(my_unique_list_id)
+
+        for increment in range(0,len(my_list_name)):
+            xw.Range('A'+str(2+increment)).value = my_list_id[increment]
+            xw.Range('B'+str(2+increment)).value = my_list_name[increment]
+            count = 0
+            for string in id_list:
+                if my_list_id[increment][0:3] in string[0:3]:
+                    count += 1
+            xw.Range('D'+str(2+increment)).value = count-1
+
+    def unique_id_list(self, list_to_manage):
+        return list(dict.fromkeys(list_to_manage))
 
 
 class quiz_xml():
@@ -394,3 +439,4 @@ class quiz_question_categories(quiz_question):
 if __name__ == '__main__':
     fichier_excel = xlsx_opener("ListeQuestions.xlsx")
     quiz_xml(fichier_excel.question_data_list)
+    statistiques("ListeQuestions.xlsx", fichier_excel.question_data_list)
