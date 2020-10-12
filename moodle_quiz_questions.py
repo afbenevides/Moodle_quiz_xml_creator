@@ -67,8 +67,12 @@ class quiz_xml():
                 quiz_question_Choix_multiple_checkbox(self.quiz, question_data)
             elif question_data[1] == 'Vrai ou Faux':
                 quiz_question_true_false(self.quiz, question_data)
+            elif question_data[1] == 'Numerique':
+                quiz_question_numerical(self.quiz, question_data)
+            elif question_data[1] == 'Reponse courte':
+                quiz_question_short_answer(self.quiz, question_data)
             else:
-                print("Ce type de question n'est pas encore suporté")
+                print("Le type de question == " + question_data[1] + " == n'est pas encore supporté")
         self.write_quiz()
 
     def add_question(self, question):
@@ -81,7 +85,8 @@ class quiz_xml():
         replacements = {
             "&gt;": ">",
             "&lt;": "<",
-            "&#233;": "é"
+            "&#233;": "é",
+            "e&#769;": "é"
         }
         q_data = q_data.decode("utf-8")
         for char in replacements:
@@ -125,15 +130,18 @@ class quiz_question():
         # idnumber
         idnumber = ET.SubElement(self.question, 'idnumber')
 
-
         # good_answer_count
         good_answer_count = 0
-        for answer_reponse in parameter_list[7:11]:
+        for answer_reponse in parameter_list[7:12]:
             if answer_reponse is None or answer_reponse == 0:
                 pass
             else:
                 good_answer_count += 1
-        fraction = 100 / good_answer_count
+
+        if  parameter_list[1] == 'Reponse courte':
+            fraction = 100
+        else:
+            fraction = 100 / good_answer_count
 
         # for answer_no in range(2,1+good_answer_count):
         #     answer_element = parameter_list[answer_no]
@@ -153,31 +161,49 @@ class quiz_question():
         #         answer_feedback_text = ET.SubElement(answer_feedback, 'text')
         #         answer_feedback_text.text = ""
         #
-        if parameter_list[2] is not None and parameter_list[2] != 0:
-            answer1 = ET.SubElement(self.question, 'answer')
-            if parameter_list[7] == 1:
-                answer1.set('fraction', str(fraction))
+        if parameter_list[2] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[7] is not None:
+            self.answer1 = ET.SubElement(self.question, 'answer')
+            if parameter_list[7] == 1 or parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                self.answer1.set('fraction', str(fraction))
             else:
-                answer1.set('fraction', str(0))
-            answer1.set('format', 'html')
-            answer1_text = ET.SubElement(answer1, 'text')
-            answer1_text.text = "<![CDATA[<p>" + parameter_list[2] + "</p>]]>"
+                self.answer1.set('fraction', str(0))
+            if parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                self.answer1.set('format', 'moodle_auto_format')
+            else:
+                self.answer1.set('format', 'html')
+            self.answer1_text = ET.SubElement(self.answer1, 'text')
+            if parameter_list[1] == 'Reponse courte':
+                self.answer1_text.text = str(parameter_list[7])
+            elif parameter_list[1] == 'Vrai ou Faux':
+                self.answer1_text.text = str(parameter_list[2])
+            else:
+                self.answer1_text.text = "<![CDATA[<p>" + str(parameter_list[2]) + "</p>]]>"
 
             # generalfeedback
-            answer1_feedback = ET.SubElement(answer1, 'feedback')
+            answer1_feedback = ET.SubElement(self.answer1, 'feedback')
             answer1_feedback.set('format', 'html')
             answer1_feedback_text = ET.SubElement(answer1_feedback, 'text')
             answer1_feedback_text.text = ""
 
-        if parameter_list[3] is not None and parameter_list[3] != 0:
+        if parameter_list[3] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[8] is not None:
             answer2 = ET.SubElement(self.question, 'answer')
-            if parameter_list[8] == 1:
+            if parameter_list[8] == 1 or parameter_list[1] == 'Reponse courte':
                 answer2.set('fraction', str(fraction))
             else:
                 answer2.set('fraction', str(0))
+            if parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                answer2.set('format', 'moodle_auto_format')
+            else:
+                answer2.set('format', 'html')
             answer2.set('format', 'html')
             answer2_text = ET.SubElement(answer2, 'text')
-            answer2_text.text = "<![CDATA[<p>" + parameter_list[3] + "</p>]]>"
+
+            if parameter_list[1] == 'Reponse courte':
+                answer2_text.text = str(parameter_list[8])
+            elif parameter_list[1] == 'Vrai ou Faux':
+                answer2_text.text = str(parameter_list[3])
+            else:
+                answer2_text.text = "<![CDATA[<p>" + parameter_list[3] + "</p>]]>"
 
             # generalfeedback
             answer2_feedback = ET.SubElement(answer2, 'feedback')
@@ -185,56 +211,75 @@ class quiz_question():
             answer2_feedback_text = ET.SubElement(answer2_feedback, 'text')
             answer2_feedback_text.text = ""
 
-        if parameter_list[4] is not None and parameter_list[4] != 0:
+        if parameter_list[4] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[9] is not None:
             answer3 = ET.SubElement(self.question, 'answer')
-            if parameter_list[9] == 1:
+            if parameter_list[9] == 1 or parameter_list[1] == 'Reponse courte':
                 answer3.set('fraction', str(fraction))
             else:
                 answer3.set('fraction', str(0))
+            if parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                answer3.set('format', 'moodle_auto_format')
+            else:
+                answer3.set('format', 'html')
             answer3.set('format', 'html')
+
             answer3_text = ET.SubElement(answer3, 'text')
-            answer3_text.text = "<![CDATA[<p>" + parameter_list[4] + "</p>]]>"
+            if parameter_list[1] == 'Reponse courte':
+                answer3_text.text = str(parameter_list[9])
+            else:
+                answer3_text.text = "<![CDATA[<p>" + parameter_list[4] + "</p>]]>"
 
             # generalfeedback
             answer3_feedback = ET.SubElement(answer3, 'feedback')
             answer3_feedback.set('format', 'html')
             answer3_feedback_text = ET.SubElement(answer3_feedback, 'text')
             answer3_feedback_text.text = ""
-        
-        if parameter_list[5] is not None and parameter_list[5] != 0:
+
+        if parameter_list[5] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[10] is not None:
             answer4 = ET.SubElement(self.question, 'answer')
-            if parameter_list[10] == 1:
+            if parameter_list[10] == 1  or parameter_list[1] == 'Reponse courte':
                 answer4.set('fraction', str(fraction))
             else:
                 answer4.set('fraction', str(0))
+            if parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                answer4.set('format', 'moodle_auto_format')
+            else:
+                answer4.set('format', 'html')
             answer4.set('format', 'html')
             answer4_text = ET.SubElement(answer4, 'text')
-            answer4_text.text = "<![CDATA[<p>" + parameter_list[5] + "</p>]]>"
+            if parameter_list[1] == 'Reponse courte':
+                answer4_text.text = str(parameter_list[10])
+            else:
+                answer4_text.text = "<![CDATA[<p>" + parameter_list[5] + "</p>]]>"
 
             # generalfeedback
             answer4_feedback = ET.SubElement(answer4, 'feedback')
             answer4_feedback.set('format', 'html')
             answer4_feedback_text = ET.SubElement(answer4_feedback, 'text')
             answer4_feedback_text.text = ""
-            
-        if parameter_list[6] is not None and parameter_list[6] != 0:
+
+        if parameter_list[6] is not None or parameter_list[1] == 'Reponse courte' and parameter_list[11] is not None:
             answer5 = ET.SubElement(self.question, 'answer')
-            if parameter_list[11] == 1:
+            if parameter_list[11] == 1  or parameter_list[1] == 'Reponse courte':
                 answer5.set('fraction', str(fraction))
             else:
                 answer5.set('fraction', str(0))
+            if parameter_list[1] == 'Numerique' or parameter_list[1] == 'Reponse courte':
+                answer5.set('format', 'moodle_auto_format')
+            else:
+                answer5.set('format', 'html')
             answer5.set('format', 'html')
             answer5_text = ET.SubElement(answer5, 'text')
-            answer5_text.text = "<![CDATA[<p>" + parameter_list[6] + "</p>]]>"
+            if parameter_list[1] == 'Reponse courte':
+                answer5_text.text = str(parameter_list[11])
+            else:
+                answer5_text.text = "<![CDATA[<p>" + parameter_list[6] + "</p>]]>"
 
             # generalfeedback
             answer5_feedback = ET.SubElement(answer5, 'feedback')
             answer5_feedback.set('format', 'html')
             answer5_feedback_text = ET.SubElement(answer5_feedback, 'text')
             answer5_feedback_text.text = ""
-
-
-
 
 
 class quiz_question_Choix_multiple_checkbox(quiz_question):
@@ -289,8 +334,29 @@ class quiz_question_true_false(quiz_question):
         self.question.set('type', 'truefalse')
 
 
-class quiz():
-    pass
+class quiz_question_short_answer(quiz_question):
+    def __init__(self, quiz, parameter_list):
+        super().__init__(quiz, parameter_list)
+        self.question.set('type', 'shortanswer')
+        usecase = ET.SubElement(self.question, 'usecase')
+        usecase.text = "0"
+
+
+class quiz_question_numerical(quiz_question):
+    def __init__(self, quiz, parameter_list):
+        super().__init__(quiz, parameter_list)
+        self.question.set('type', 'numerical')
+        self.answer1_text.text = str(parameter_list[7])
+        answer1_tolerance = ET.SubElement(self.answer1, 'tolerance')
+        answer1_tolerance.text = str(parameter_list[2])
+        unitgradingtype = ET.SubElement(self.question, 'unitgradingtype')
+        unitgradingtype.text = "0"
+        unitpenalty = ET.SubElement(self.question, 'unitpenalty')
+        unitpenalty.text = "0.1000000"
+        showunits = ET.SubElement(self.question, 'showunits')
+        showunits.text = "3"
+        unitsleft = ET.SubElement(self.question, 'unitsleft')
+        unitsleft.text = "0"
 
 
 if __name__ == '__main__':
