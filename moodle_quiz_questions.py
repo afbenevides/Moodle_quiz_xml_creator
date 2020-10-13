@@ -3,6 +3,7 @@ from xlwings.constants import DeleteShiftDirection
 
 import unicodedata
 import xml.etree.ElementTree as ET
+import copy
 
 
 class xlsx_opener():
@@ -17,7 +18,7 @@ class xlsx_opener():
         try:
             xw.books.open(data_file_name)
         except ValueError:
-            print("incapable d'ouvrir le ichier excel, p-e ouverture en double?")
+            print("incapable d'ouvrir le fichier excel, p-e ouverture en double?")
         sheet_name = 'ListeQuestions'
         print(sheet_name)
         xw.sheets[sheet_name].activate()
@@ -70,7 +71,7 @@ class statistiques():
         print(sheet_name)
         xw.sheets[sheet_name].activate()
         # lwr_r_cell = xw.cells.last_cell  # lower right cell
-        if xw.Range('A2').value:
+        if xw.Range('A3').value:
             self.last_line = xw.Range('A2').end('down').row
             xw.Range(str(2) + ':' + str(self.last_line+1)).delete()
 
@@ -87,7 +88,7 @@ class statistiques():
                 my_list_name.append(each[0].split('/')[-1])
                 my_list_id.append(each[-1])
 
-
+        print(id_list)
         print(my_list_name)
         print(my_list_id)
 
@@ -95,15 +96,53 @@ class statistiques():
         #my_unique_list_id = self.unique_id_list(my_list_id)
         #print(my_unique_list_name)
         #print(my_unique_list_id)
+        module_qty = 0
+        module_qty_sum = len(id_list) - len(my_list_id)
+        print(module_qty_sum)
 
         for increment in range(0,len(my_list_name)):
             xw.Range('A'+str(2+increment)).value = my_list_id[increment]
             xw.Range('B'+str(2+increment)).value = my_list_name[increment]
+
+            # calcul quantité question dans section
             count = 0
-            for string in id_list:
-                if my_list_id[increment][0:3] in string[0:3]:
-                    count += 1
-            xw.Range('D'+str(2+increment)).value = count-1
+
+
+            if my_list_id[increment][-1] == '0' and len(my_list_id[increment]) == 5:
+                compare_string = my_list_id[increment][0:4] + '1'
+                for string in id_list:
+                    if compare_string == string:
+                        count += 1
+                if module_qty != 0:
+                    xw.Range('C' + str(2 + increment)).value = count / module_qty_sum
+                    xw.Range('G' + str(2 + increment)).value = count / module_qty
+                else:
+                    xw.Range('C' + str(2 + increment)).value = 0
+                    xw.Range('G' + str(2 + increment)).value = 0
+
+            elif my_list_id[increment][-1]== '0' and len(my_list_id[increment]) == 3:
+                for string in id_list:
+                    if my_list_id[increment][0] == string[0] and string[-1] != '0':
+                        count += 1
+                xw.Range('A' + str(2 + increment) + ':F' + str(2 + increment)).color = (245, 194, 67)
+                module_qty = copy.copy(count)
+                #module_qty_sum += module_qty
+                if module_qty_sum != 0:
+                    xw.Range('C' + str(2 + increment)).value = count / module_qty_sum
+                    xw.Range('G' + str(2 + increment)).value = count / module_qty_sum
+                else:
+                    xw.Range('C' + str(2 + increment)).value = 0
+                    xw.Range('G' + str(2 + increment)).value = 0
+
+
+
+            xw.Range('F'+str(2+increment)).value = count
+            xw.Range('C'+str(2+increment)).number_format = "0.00%"
+            xw.Range('G'+str(2+increment)).number_format = "0.00%"
+
+
+
+
 
     def unique_id_list(self, list_to_manage):
         return list(dict.fromkeys(list_to_manage))
