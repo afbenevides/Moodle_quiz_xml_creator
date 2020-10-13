@@ -124,7 +124,7 @@ class statistiques():
                 for string in id_list:
                     if my_list_id[increment][0] == string[0] and string[-1] != '0':
                         count += 1
-                xw.Range('A' + str(2 + increment) + ':F' + str(2 + increment)).color = (245, 194, 67)
+                xw.Range('A' + str(2 + increment) + ':G' + str(2 + increment)).color = (245, 194, 67)
                 module_qty = copy.copy(count)
                 #module_qty_sum += module_qty
                 if module_qty_sum != 0:
