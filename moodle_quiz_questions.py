@@ -73,13 +73,13 @@ class statistiques():
         # lwr_r_cell = xw.cells.last_cell  # lower right cell
         if xw.Range('A3').value:
             self.last_line = xw.Range('A2').end('down').row
-            xw.Range(str(2) + ':' + str(self.last_line+1)).delete()
+            xw.Range(str(2) + ':' + str(self.last_line + 1)).delete()
 
-        #Trouver tous les lignes à traiter
+        # Trouver tous les lignes à traiter
 
-        my_list_name=[]
-        my_list_id=[]
-        id_list=[]
+        my_list_name = []
+        my_list_id = []
+        id_list = []
         for each in question_data:
             id_list.append(each[-1])
 
@@ -92,21 +92,20 @@ class statistiques():
         print(my_list_name)
         print(my_list_id)
 
-        #my_unique_list_name = self.unique_id_list(my_list_name)
-        #my_unique_list_id = self.unique_id_list(my_list_id)
-        #print(my_unique_list_name)
-        #print(my_unique_list_id)
+        # my_unique_list_name = self.unique_id_list(my_list_name)
+        # my_unique_list_id = self.unique_id_list(my_list_id)
+        # print(my_unique_list_name)
+        # print(my_unique_list_id)
         module_qty = 0
         module_qty_sum = len(id_list) - len(my_list_id)
         print(module_qty_sum)
 
-        for increment in range(0,len(my_list_name)):
-            xw.Range('A'+str(2+increment)).value = my_list_id[increment]
-            xw.Range('B'+str(2+increment)).value = my_list_name[increment]
+        for increment in range(0, len(my_list_name)):
+            xw.Range('A' + str(2 + increment)).value = my_list_id[increment]
+            xw.Range('B' + str(2 + increment)).value = my_list_name[increment]
 
             # calcul quantité question dans section
             count = 0
-
 
             if my_list_id[increment][-1] == '0' and len(my_list_id[increment]) == 5:
                 compare_string = my_list_id[increment][0:4] + '1'
@@ -120,13 +119,13 @@ class statistiques():
                     xw.Range('C' + str(2 + increment)).value = 0
                     xw.Range('G' + str(2 + increment)).value = 0
 
-            elif my_list_id[increment][-1]== '0' and len(my_list_id[increment]) == 3:
+            elif my_list_id[increment][-1] == '0' and len(my_list_id[increment]) == 3:
                 for string in id_list:
                     if my_list_id[increment][0] == string[0] and string[-1] != '0':
                         count += 1
                 xw.Range('A' + str(2 + increment) + ':G' + str(2 + increment)).color = (245, 194, 67)
                 module_qty = copy.copy(count)
-                #module_qty_sum += module_qty
+                # module_qty_sum += module_qty
                 if module_qty_sum != 0:
                     xw.Range('C' + str(2 + increment)).value = count / module_qty_sum
                     xw.Range('G' + str(2 + increment)).value = count / module_qty_sum
@@ -134,15 +133,11 @@ class statistiques():
                     xw.Range('C' + str(2 + increment)).value = 0
                     xw.Range('G' + str(2 + increment)).value = 0
 
-
-
-            xw.Range('F'+str(2+increment)).value = count
-            xw.Range('C'+str(2+increment)).number_format = "0.00%"
-            xw.Range('G'+str(2+increment)).number_format = "0.00%"
-
-
-
-
+            xw.Range('F' + str(2 + increment)).value = count
+            xw.Range('C' + str(2 + increment)).number_format = "0.00%"
+            xw.Range('G' + str(2 + increment)).number_format = "0.00%"
+            if increment == len(my_list_name) - 1:
+                xw.Range('F' + str(2 + increment + 1)).value = module_qty_sum
 
     def unique_id_list(self, list_to_manage):
         return list(dict.fromkeys(list_to_manage))
@@ -182,7 +177,17 @@ class quiz_xml():
             "&lt;": "<",
             "&#233;": "é",
             "e&#769;": "é",
-            "e&#768;": "è"
+            "E&#769;": "É",
+            "e&#768;": "è",
+            "&#8217;": "\'",
+            "e&#770;": "ê",
+            "a&#768;": "à",
+            "i&#770;": "î",
+            "u&#770;": "ù",
+            "u&#768;": "ù",
+            "o&#770;": "Ô",
+            "c&#807;": "ç",
+            "A&#768;": "À"
         }
         q_data = q_data.decode("utf-8")
         for char in replacements:
